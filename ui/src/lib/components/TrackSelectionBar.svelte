@@ -95,7 +95,7 @@
      header and row 1: the actions belong to the selection, not to a slot in the page, and a list
      that reflows the moment you tick a box is the thing you were aiming at moving. bottom-24 clears
      the player bar. Only in select mode; the header button is what turns that on. -->
-{#if selection.active}
+{#if selection.claimed}
 	<div
 		transition:fly={{ y: 16, duration: 220, easing: cubicOut }}
 		class="fixed bottom-24 left-1/2 z-40 flex max-w-[min(44rem,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-1 rounded-2xl border bg-card px-2 py-2 shadow-lg"

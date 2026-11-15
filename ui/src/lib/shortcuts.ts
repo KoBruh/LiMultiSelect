@@ -15,6 +15,7 @@ import {
 	toggleNowPlayingRating,
 	ui
 } from './player.svelte';
+import { exitSelectMode } from './selection.svelte';
 
 export const IS_MAC = browser && navigator.platform.startsWith('Mac');
 
@@ -71,6 +72,7 @@ export const typing = (t: EventTarget | null) =>
 		(t instanceof HTMLInputElement && t.type !== 'range'));
 
 /** Where focus a click left behind stays put: see `onFocus` below. */
+const OWN_ESCAPE = '[role=dialog],[role=alertdialog],[role=menu],[role=listbox]';
 const KEEPS_FOCUS =
 	'[role=dialog],[role=alertdialog],[role=menu],[role=listbox],[data-selected],[data-track-selection]';
 
@@ -85,6 +87,14 @@ export function initShortcuts(mini = false) {
 		// The mini widget has no page to reload, so it keeps the key for the OS.
 		if (!mini && e.key === 'F5') {
 			refreshView();
+			e.preventDefault();
+			return;
+		}
+		// Escape leaves select mode from anywhere, as the titlebar toggle does. A focused row or the
+		// selection bar has already taken it; a field, menu or dialog keeps it to close itself.
+		if (!mini && e.key === 'Escape' && ui.multiSelect) {
+			if (typing(e.target) || (e.target instanceof HTMLElement && e.target.closest(OWN_ESCAPE))) return;
+			exitSelectMode();
 			e.preventDefault();
 			return;
 		}

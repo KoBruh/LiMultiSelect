@@ -1,7 +1,19 @@
 import { tick, untrack } from 'svelte';
 import type { SongItem } from './api';
+import { ui } from './player.svelte';
 import { emptySelection, reconcileSelection, toggleTrack, visibleTrackKeys,
 	type TrackEntry } from './selection';
+
+// Select mode is app-wide (the titlebar toggle), but a selection lives in one list. Whichever list
+// gets the first pick claims it; until that list is empty again every other list stays a plain
+// click-to-open list.
+const claim = $state<{ owner: symbol | null }>({ owner: null });
+
+/** Leave select mode everywhere. Each list drops its own selection once it sees the flag go down. */
+export function exitSelectMode() {
+	ui.multiSelect = false;
+	claim.owner = null;
+}
 
 /** One list owns selection. Rows may unmount freely; navigation/account changes reset the scope. */
 export function trackSelection(
@@ -16,8 +28,11 @@ export function trackSelection(
 	let loadedKeys = $state.raw<ReadonlySet<string>>(new Set());
 	let selected = $state.raw(emptySelection());
 	let lost = $state(0);
-	// Off by default: checkboxes and the bulk bar only exist once the list is put in select mode.
-	let active = $state(false);
+	const me = Symbol();
+	// In select mode clicks pick rows instead of playing them, until another list claims the
+	// selection. Checkboxes and the bulk bar wait for this list to claim it.
+	const active = $derived(ui.multiSelect && (claim.owner === null || claim.owner === me));
+	const claimed = $derived(ui.multiSelect && claim.owner === me);
 	let selectingAll = $state(false);
 	// Bumped every time the selection is dropped out from under an in-flight selectAll: a walk that
 	// comes back to a cleared list, another playlist, or a list no longer in select mode has nothing
@@ -25,6 +40,27 @@ export function trackSelection(
 	let dropped = 0;
 	let lastScope: string | undefined;
 	let nextKey = 0;
+	function release() {
+		if (claim.owner === me) claim.owner = null;
+	}
+	// Claim on the first pick, let go on the last. Called after every write to `selected`.
+	function settle() {
+		if (selected.keys.size) claim.owner = me;
+		else release();
+	}
+	// Select mode switched off (toggle, Escape, navigation), or another list took over: nothing here
+	// stays selected, and an in-flight selectAll has nothing left to select.
+	$effect(() => {
+		if (active) return;
+		untrack(() => {
+			if (!selected.keys.size && !lost) return;
+			selected = emptySelection();
+			lost = 0;
+			dropped++;
+		});
+	});
+	// A list that unmounts while it holds the selection must not keep the others locked out.
+	$effect(() => release);
 	$effect(() => {
 		const songs = items();
 		const currentScope = scope();
@@ -34,8 +70,8 @@ export function trackSelection(
 				entries = [];
 				selected = emptySelection();
 				lost = 0;
-				active = false;
 				dropped++;
+				release();
 				lastScope = currentScope;
 			}
 			// A server sort or cached-page refresh may replace a long list with its first page.
@@ -45,6 +81,7 @@ export function trackSelection(
 			loadedKeys = next.loadedKeys;
 			lost += selected.keys.size - next.selection.keys.size;
 			selected = next.selection;
+			if (claim.owner === me) settle();
 		});
 	});
 	const visibleKeys = $derived(visibleTrackKeys(entries, visible()));
@@ -60,8 +97,8 @@ export function trackSelection(
 	);
 	return {
 		get active() { return active; },
-		enter() { active = true; },
-		exit() { active = false; selected = emptySelection(); lost = 0; dropped++; },
+		get claimed() { return claimed; },
+		exit() { selected = emptySelection(); lost = 0; dropped++; exitSelectMode(); },
 		get count() { return selected.keys.size; },
 		get songs() { return songs; },
 		get visibleKeys() { return visibleKeys; },
@@ -71,6 +108,7 @@ export function trackSelection(
 		has(key: string | undefined) { return key !== undefined && selected.keys.has(key); },
 		toggle(key: string, range = false) {
 			selected = toggleTrack(selected, key, visibleKeys, range);
+			settle();
 		},
 		get selectAllCount() { return selectAllCount; },
 		get allSelected() { return allSelected; },
@@ -94,12 +132,15 @@ export function trackSelection(
 				// Cleared, navigated, switched account, or left select mode while the pages were in
 				// the air. Whichever it was is the newer instruction, so it wins.
 				if (dropped !== at) return;
+				// Another list may have claimed the selection while the pages were in the air.
+				if (!active) return;
 				selected = { keys: new Set([...selected.keys, ...visibleKeys]), anchor: visibleKeys[0] ?? null };
+				settle();
 			} finally {
 				selectingAll = false;
 			}
 		},
-		clear() { selected = emptySelection(); lost = 0; dropped++; }
+		clear() { selected = emptySelection(); lost = 0; dropped++; release(); }
 	};
 }
 

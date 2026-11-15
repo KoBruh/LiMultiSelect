@@ -34,7 +34,6 @@
 	import TrackRow from '$lib/components/TrackRow.svelte';
 	import TrackRowSkeleton from '$lib/components/TrackRowSkeleton.svelte';
 	import TrackSelectionBar from '$lib/components/TrackSelectionBar.svelte';
-	import TrackSelectButton from '$lib/components/TrackSelectButton.svelte';
 	import { trackSelection, type TrackSelection } from '$lib/selection.svelte';
 	import * as api from '$lib/api';
 	import type { BrowseItem, Mood, MoodSection, SearchResults, SongItem } from '$lib/api';
@@ -474,11 +473,6 @@
 						{/if}
 					{/each}
 				</div>
-				{#if cat === 'songs'}
-					<TrackSelectButton {selection} />
-				{:else if cat === 'videos'}
-					<TrackSelectButton selection={videoSelection} />
-				{/if}
 			</div>
 		{/if}
 		{#if stuck}
@@ -530,9 +524,7 @@
 									title={t('common.songs')}
 									icon={MusicNote01Icon}
 									onMore={() => pickCat('songs')}
-								>
-									<TrackSelectButton {selection} />
-								</SectionHeading>
+								/>
 								{@render rows(songList, selection)}
 							</section>
 						{/if}
@@ -550,9 +542,7 @@
 							title={t('common.videos')}
 							icon={Video01Icon}
 							onMore={() => pickCat('videos')}
-						>
-							<TrackSelectButton selection={videoSelection} />
-						</SectionHeading>
+						/>
 						{@render rows(videoList, videoSelection)}
 					</section>
 				{/if}

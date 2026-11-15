@@ -1526,6 +1526,7 @@ export const ui = $state({
 	paletteOpen: false, // the Ctrl+K search palette
 	theaterOpen: false, // fullscreen theater view (artwork + lyrics and/or queue)
 	shortcutsOpen: false, // the Ctrl+H (⌘/ on macOS) keyboard-shortcuts list
+	multiSelect: false, // the titlebar's select mode: clicks pick items instead of opening them
 	channelPickerOpen: false,
 	channelPickerRequired: false, // true while a multi-channel login is not finalized yet
 	channelIdentities: [] as AccountIdentity[],

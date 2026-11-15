@@ -119,7 +119,7 @@
 		"selected": "Selected",
 		"not_selected": "Not selected",
 		"hidden": "{count} hidden",
-		"enter": "Select tracks",
+		"enter": "Select items",
 		"exit": "Leave select mode",
 		"hint": "Pick tracks to act on them",
 		"select_all": "Select all ({count})",

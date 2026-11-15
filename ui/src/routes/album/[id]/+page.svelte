@@ -19,7 +19,6 @@
     import TrackColumns, { chosen } from "$lib/components/TrackColumns.svelte";
     import { availableColumns, fitColumns } from "$lib/trackcolumns";
     import TrackSelectionBar from "$lib/components/TrackSelectionBar.svelte";
-    import TrackSelectButton from "$lib/components/TrackSelectButton.svelte";
     import { trackSelection } from "$lib/selection.svelte";
     import TrackFilter, {
         filterTracks,
@@ -359,10 +358,6 @@
                         {inLibrary ? t("library.in_library") : t("library.save_to_library")}
                     </button>
                 {/if}
-                <TrackSelectButton
-                    {selection}
-                    class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition hover:bg-accent/10 hover:text-foreground"
-                />
                 <button
                     class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border text-muted-foreground transition hover:bg-accent/10 hover:text-foreground"
                     onclick={openMenu}
@@ -469,7 +464,7 @@
         {#if shown.length}
             <!-- Its width decides which columns fit (`fitColumns`). -->
             <div bind:clientWidth={listPx}>
-                <TrackColumns available={availCols} columns={cols} selecting={selection.active} />
+                <TrackColumns available={availCols} columns={cols} selecting={selection.claimed} />
                 {#each shown as item, i (JSON.stringify([item.video_id, i]))}
                     <TrackRow
                         song={item}

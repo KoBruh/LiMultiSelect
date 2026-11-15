@@ -35,7 +35,6 @@
 	import TrackColumns, { chosen, loadMyPlays, myPlays } from '$lib/components/TrackColumns.svelte';
 	import { availableColumns, fitColumns } from '$lib/trackcolumns';
 	import TrackSelectionBar from '$lib/components/TrackSelectionBar.svelte';
-	import TrackSelectButton from '$lib/components/TrackSelectButton.svelte';
 	import { trackSelection } from '$lib/selection.svelte';
 	import { subtitleCount, withSubtitleCount } from '$lib/trackcount';
 	import EditPlaylistDialog from '$lib/components/EditPlaylistDialog.svelte';
@@ -1270,10 +1269,6 @@
 							>
 								<HugeiconsIcon icon={MoreVerticalIcon} class="h-5 w-5 text-muted-foreground" />
 							</Button>
-							<TrackSelectButton
-								{selection}
-								class="-ml-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition hover:bg-muted hover:text-foreground"
-							/>
 						</div>
 						<!-- Pushed to the far end of the header, away from the play controls. -->
 						<div class="flex items-center">
@@ -1334,7 +1329,7 @@
 				{#if shown.length}
 					<!-- Its width decides which columns fit (`fitColumns`). -->
 					<div bind:clientWidth={listPx}>
-						<TrackColumns available={availCols} columns={cols} selecting={selection.active} />
+						<TrackColumns available={availCols} columns={cols} selecting={selection.claimed} />
 						<!-- The padding stands in for the rows outside the window, so the scrollbar is the
 						     length of the whole playlist even though only ~30 rows exist.
 						     data-rows: what the scroller measures row 0's position from. -->

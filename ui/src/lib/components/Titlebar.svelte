@@ -19,6 +19,7 @@
 		CopyIcon,
 		Cancel01Icon,
 		MinimizeScreenIcon,
+		CursorMagicSelection04Icon,
 		CameraVideoIcon,
 		CheckmarkCircle01Icon,
 		HotspotOfflineIcon,
@@ -37,6 +38,7 @@
 	import { lt } from '$lib/lt.svelte';
 	import { anchorMenu, fitMenu, NO_ANCHOR } from '$lib/menu';
 	import { t } from '$lib/i18n.svelte';
+	import { exitSelectMode } from '$lib/selection.svelte';
 	import { connectLastfm, disconnectLastfm, lastfm, watchLastfm } from '$lib/lastfm.svelte';
 	import { watchListenBrainz } from '$lib/listenbrainz.svelte';
 
@@ -50,6 +52,9 @@
 	let depth = $state(0);
 	let deepest = $state(0);
 	afterNavigate((nav) => {
+		// A selection belongs to the page it was made on. Query-only changes (a new search, a
+		// filter in the URL) keep the mode; each list resets its own picks when its scope changes.
+		if (nav.from?.url.pathname !== nav.to?.url.pathname) exitSelectMode();
 		if (nav.type === 'enter') depth = deepest = 0;
 		else if (nav.delta !== undefined) depth = Math.max(0, depth + nav.delta);
 		else deepest = depth += 1;
@@ -291,6 +296,20 @@
 			aria-label={t('a11y.toggle_mini')}
 		>
 			<HugeiconsIcon icon={MinimizeScreenIcon} class="h-4 w-4" />
+		</button>
+
+		<!-- Select mode, for every list at once: clicks pick items instead of opening them, and the
+		     first pick decides which list the selection lives in (selection.svelte.ts). -->
+		<button
+			class="flex h-full w-8 items-center justify-center transition-colors hover:bg-accent/10 hover:text-foreground {ui.multiSelect
+				? 'text-primary'
+				: 'text-muted-foreground'}"
+			onclick={() => (ui.multiSelect ? exitSelectMode() : (ui.multiSelect = true))}
+			aria-pressed={ui.multiSelect}
+			title={ui.multiSelect ? t('selection.exit') : t('selection.enter')}
+			aria-label={ui.multiSelect ? t('selection.exit') : t('selection.enter')}
+		>
+			<HugeiconsIcon icon={CursorMagicSelection04Icon} class="h-4 w-4" />
 		</button>
 
 		{#if win.chrome === 'off'}

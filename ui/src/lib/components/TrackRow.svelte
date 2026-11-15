@@ -111,8 +111,10 @@
 	// reflect that in the hover icon + label so the row doesn't lie.
 	const guestAdd = $derived(lt.role === 'guest');
 	// Only in select mode: at rest the row is a plain click-to-play row, with no checkbox and no
-	// Space/click rebinding.
+	// Space/click rebinding. The checkbox waits for this list to claim the selection, so turning
+	// select mode on changes nothing on screen until the first pick.
 	const selectable = $derived(!!selection?.active && selectionKey !== undefined);
+	const checkable = $derived(selectable && !!selection?.claimed);
 	const selected = $derived(selection?.has(selectionKey) ?? false);
 
 	// In select mode the row's menu acts on the whole selection when this row is in it; otherwise it
@@ -255,6 +257,8 @@
 		<span id={selectionDescriptionId} class="sr-only">
 			{t(selected ? 'selection.selected' : 'selection.not_selected')}
 		</span>
+	{/if}
+	{#if checkable}
 		<Checkbox
 			checked={selected}
 			aria-label={t('selection.select_track', { title: song.title })}
