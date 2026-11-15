@@ -1593,3 +1593,13 @@ input[type='range'].range:active::-webkit-slider-thumb {
 		scroll-behavior: auto !important;
 	}
 }
+
+/* Fork-only (KoBruh/LiMultiSelect): square corners everywhere. Last in the file and !important so
+   it beats Tailwind's rounded-* utilities, rounded-full included, and any inline radius. Not meant
+   for upstream. */
+*,
+*::before,
+*::after,
+::-webkit-scrollbar-thumb {
+	border-radius: 0 !important;
+}
